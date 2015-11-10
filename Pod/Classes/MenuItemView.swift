@@ -14,6 +14,7 @@ public class MenuItemView: UIView {
     private var options: PagingMenuOptions!
     private var title: String!
     private var widthLabelConstraint: NSLayoutConstraint!
+    private var badge: SwiftBadge!
     
     // MARK: - Lifecycle
     
@@ -82,20 +83,39 @@ public class MenuItemView: UIView {
         titleLabel.textAlignment = NSTextAlignment.Center
         titleLabel.userInteractionEnabled = true
         titleLabel.translatesAutoresizingMaskIntoConstraints = false
+
+        badge = SwiftBadge()
+        badge.defaultInsets = CGSize(width: 3, height: 3)
+        badge.layer.borderColor = UIColor.whiteColor().CGColor
+        badge.layer.borderWidth = 2
+        badge.font = UIFont.preferredFontForTextStyle(UIFontTextStyleBody).fontWithSize(12)
+        badge.hidden = true
+        
         addSubview(titleLabel)
+        addSubview(badge)
+        
     }
     
     private func layoutLabel() {
-        let viewsDictionary = ["label": titleLabel]
+        let views: [String: UIView] = [
+            "title": titleLabel,
+            "badge": badge
+        ]
+        let badgeToRight = NSLayoutConstraint.constraintsWithVisualFormat("H:[title]-(0)-[badge]", options: [], metrics: nil, views: views)
+        let badgeToTop = NSLayoutConstraint.constraintsWithVisualFormat("V:[title]-(-30)-[badge]", options: [], metrics: nil, views: views)
         
+        addConstraints(badgeToRight + badgeToTop)
+
         let labelSize = calculateLableSize()
 
-        let horizontalConstraints = NSLayoutConstraint.constraintsWithVisualFormat("H:|[label]|", options: [], metrics: nil, views: viewsDictionary)
-        let verticalConstraints = NSLayoutConstraint.constraintsWithVisualFormat("V:|[label]|", options: [], metrics: nil, views: viewsDictionary)
         
-        NSLayoutConstraint.activateConstraints(horizontalConstraints + verticalConstraints)
+        let centerX = NSLayoutConstraint(item: self, attribute: NSLayoutAttribute.CenterX, relatedBy: NSLayoutRelation.Equal, toItem: titleLabel, attribute: NSLayoutAttribute.CenterX, multiplier: 1, constant: 0)
+        let centerY = NSLayoutConstraint(item: self, attribute: NSLayoutAttribute.CenterY, relatedBy: NSLayoutRelation.Equal, toItem: titleLabel, attribute: NSLayoutAttribute.CenterY, multiplier: 1, constant: 0)
         
-        widthLabelConstraint = NSLayoutConstraint(item: titleLabel, attribute: NSLayoutAttribute.Width, relatedBy: NSLayoutRelation.Equal, toItem: nil, attribute: NSLayoutAttribute.Width, multiplier: 1.0, constant: labelSize.width)
+        addConstraint(centerX)
+        addConstraint(centerY)
+        
+        widthLabelConstraint = NSLayoutConstraint(item: self, attribute: NSLayoutAttribute.Width, relatedBy: NSLayoutRelation.Equal, toItem: nil, attribute: NSLayoutAttribute.Width, multiplier: 1.0, constant: labelSize.width)
         widthLabelConstraint.active = true
     }
     
@@ -130,5 +150,16 @@ public class MenuItemView: UIView {
             return 0.0
         }
         return options.menuItemMargin
+    }
+    
+    // MARK: - Public functions
+    
+    public func showBadgeWithText(text: String) {
+        self.badge.text = text
+        self.badge.hidden = false
+    }
+    
+    public func hideBadge() {
+        self.badge.hidden = true
     }
 }

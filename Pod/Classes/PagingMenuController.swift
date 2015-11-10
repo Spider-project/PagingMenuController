@@ -64,6 +64,10 @@ public class PagingMenuController: UIViewController, UIScrollViewDelegate {
         return currentPage + 1 > options.menuItemCount - 1 ? 0 : currentPage + 1
     }
 
+    public func menuItemAtIndex(index: Int) -> MenuItemView {
+        return menuView.menuItemViews[index]
+    }
+    
     private let ExceptionName = "PMCException"
 
     // MARK: - Lifecycle
