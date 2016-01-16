@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		890DBDC3A098B8BB52FA29E6 /* SwiftBadge.swift in Sources */ = {isa = PBXBuildFile; fileRef = 890DBEA418134F26238D8962 /* SwiftBadge.swift */; };
 		ECE5306D1B6DEB18001CF201 /* PagingMenuController.h in Headers */ = {isa = PBXBuildFile; fileRef = ECE5306C1B6DEB18001CF201 /* PagingMenuController.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		ECE530871B6DEB68001CF201 /* MenuItemView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECE530831B6DEB68001CF201 /* MenuItemView.swift */; };
 		ECE530881B6DEB68001CF201 /* MenuView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECE530841B6DEB68001CF201 /* MenuView.swift */; };
@@ -15,6 +16,7 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		890DBEA418134F26238D8962 /* SwiftBadge.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SwiftBadge.swift; sourceTree = "<group>"; };
 		ECE530671B6DEB18001CF201 /* PagingMenuController.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = PagingMenuController.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		ECE5306B1B6DEB18001CF201 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		ECE5306C1B6DEB18001CF201 /* PagingMenuController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PagingMenuController.h; sourceTree = "<group>"; };
@@ -60,6 +62,7 @@
 				ECE530861B6DEB68001CF201 /* PagingMenuOptions.swift */,
 				ECE5306C1B6DEB18001CF201 /* PagingMenuController.h */,
 				ECE5306A1B6DEB18001CF201 /* Supporting Files */,
+				890DBEA418134F26238D8962 /* SwiftBadge.swift */,
 			);
 			path = PagingMenuController;
 			sourceTree = "<group>";
@@ -155,6 +158,7 @@
 				ECE5308A1B6DEB68001CF201 /* PagingMenuOptions.swift in Sources */,
 				ECE530891B6DEB68001CF201 /* PagingMenuController.swift in Sources */,
 				ECE530881B6DEB68001CF201 /* MenuView.swift in Sources */,
+				890DBDC3A098B8BB52FA29E6 /* SwiftBadge.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
