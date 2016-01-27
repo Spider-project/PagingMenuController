@@ -457,12 +457,16 @@ public class PagingMenuController: UIViewController, UIScrollViewDelegate {
     }
 
     private func shouldLoadPage(index: Int) -> Bool {
+        // for Spider, always return true
+        return true
+        /*
         if case .Infinite = options.menuDisplayMode {
             guard index == currentPage || index == previousIndex || index == nextIndex else { return false }
         } else {
             guard index >= previousIndex && index <= nextIndex else { return false }
         }
         return true
+        */
     }
 
     private func isVisiblePagingViewController(pagingViewController: UIViewController) -> Bool {
