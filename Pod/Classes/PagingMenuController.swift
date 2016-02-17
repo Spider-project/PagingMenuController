@@ -13,9 +13,10 @@ import UIKit
     optional func didMoveToMenuPage(page: Int)
 }
 
-public protocol PagingMenuScrollEventsDelegate {
+public protocol PagingMenuScrollEventsDelegate: class {
     func scrollingStarted()
     func scrollingEnded()
+
 }
 
 public class PagingMenuController: UIViewController, UIScrollViewDelegate {
@@ -37,7 +38,18 @@ public class PagingMenuController: UIViewController, UIScrollViewDelegate {
     public func addScrollEventsDelegate(delegate: PagingMenuScrollEventsDelegate){
         scrollEventsDelegates.append(delegate)
     }
-    //TODO add a removeScrollEvents function
+
+    public func removeScrollEventsDelegate(delegate: PagingMenuScrollEventsDelegate) {
+        for (index, value) in scrollEventsDelegates.enumerate() {
+            if (value === delegate) {
+                scrollEventsDelegates.removeAtIndex(index)
+            }
+        }
+    }
+
+    public func removeAllScrollEventsDelegates(){
+        scrollEventsDelegates.removeAll()
+    }
 
     private var contentScrollView: UIScrollView!
     private var contentView: UIView!
