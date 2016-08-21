@@ -27,6 +27,8 @@ internal let VisiblePagingViewNumber = 3
 
 public class PagingMenuController: UIViewController, PagingValidator {
     weak public var delegate: PagingMenuControllerDelegate?
+    private var scrollEventsDelegates = [PagingMenuScrollEventsDelegate]()
+
     public private(set) var menuView: MenuView? {
         didSet {
             guard let menuView = menuView else { return }
@@ -185,6 +187,7 @@ public class PagingMenuController: UIViewController, PagingValidator {
                 
                 self?.delegate?.didMoveToPageMenuController(nextPagingViewController, previousMenuController: previousViewController)
         }
+
     }
     
     // MARK: - Constructor
@@ -280,10 +283,30 @@ public class PagingMenuController: UIViewController, PagingValidator {
     private func showPagingMenuControllers() {
         pagingViewController?.visibleControllers.forEach { $0.view.alpha = 1 }
     }
+
+    public func addScrollEventsDelegate(delegate: PagingMenuScrollEventsDelegate){
+        scrollEventsDelegates.append(delegate)
+    }
+
+    public func removeScrollEventsDelegate(delegate: PagingMenuScrollEventsDelegate) {
+        for (index, value) in scrollEventsDelegates.enumerate() {
+            if (value === delegate) {
+                scrollEventsDelegates.removeAtIndex(index)
+            }
+        }
+    }
+
+    public func removeAllScrollEventsDelegates(){
+        scrollEventsDelegates.removeAll()
+    }
 }
 
 extension PagingMenuController: UIScrollViewDelegate {
     public func scrollViewDidEndDecelerating(scrollView: UIScrollView) {
+        for delegate in scrollEventsDelegates {
+            delegate.scrollingEnded()
+        }
+
         let nextPage: Int
         switch (scrollView, pagingViewController, menuView) {
         case let (scrollView, pagingViewController?, _) where scrollView.isEqual(pagingViewController.contentScrollView):

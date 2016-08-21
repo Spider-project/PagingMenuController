@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		890DBA1FA592B04949AA9857 /* PagingMenuScrollEventsDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 890DB94CC6EDD733FABC5BF2 /* PagingMenuScrollEventsDelegate.swift */; };
 		EC202B4F1D0C54D100D527D2 /* GestureHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC202B441D0C54D100D527D2 /* GestureHandler.swift */; };
 		EC202B501D0C54D100D527D2 /* LabelSizeCalculatable.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC202B451D0C54D100D527D2 /* LabelSizeCalculatable.swift */; };
 		EC202B511D0C54D100D527D2 /* MenuItemMultipliable.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC202B461D0C54D100D527D2 /* MenuItemMultipliable.swift */; };
@@ -26,6 +27,7 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		890DB94CC6EDD733FABC5BF2 /* PagingMenuScrollEventsDelegate.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PagingMenuScrollEventsDelegate.swift; sourceTree = "<group>"; };
 		EC202B441D0C54D100D527D2 /* GestureHandler.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = GestureHandler.swift; sourceTree = "<group>"; };
 		EC202B451D0C54D100D527D2 /* LabelSizeCalculatable.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LabelSizeCalculatable.swift; sourceTree = "<group>"; };
 		EC202B461D0C54D100D527D2 /* MenuItemMultipliable.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MenuItemMultipliable.swift; sourceTree = "<group>"; };
@@ -71,6 +73,7 @@
 				EC202B4C1D0C54D100D527D2 /* PagingMenuControllerCustomizable.swift */,
 				EC202B4D1D0C54D100D527D2 /* PagingValidator.swift */,
 				EC202B4E1D0C54D100D527D2 /* ViewCleanable.swift */,
+				890DB94CC6EDD733FABC5BF2 /* PagingMenuScrollEventsDelegate.swift */,
 			);
 			name = Protocols;
 			path = Pod/Classes/Protocols;
@@ -208,6 +211,7 @@
 				EC202B561D0C54D100D527D2 /* PageLoadable.swift in Sources */,
 				EC202B571D0C54D100D527D2 /* PagingMenuControllerCustomizable.swift in Sources */,
 				EC202B4F1D0C54D100D527D2 /* GestureHandler.swift in Sources */,
+				890DBA1FA592B04949AA9857 /* PagingMenuScrollEventsDelegate.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
