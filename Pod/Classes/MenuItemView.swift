@@ -9,157 +9,305 @@
 import UIKit
 
 public class MenuItemView: UIView {
+    lazy public var titleLabel: UILabel = self.initLabel()
+    lazy public var descriptionLabel: UILabel = self.initLabel()
+    lazy public var menuImageView: UIImageView = {
+        $0.userInteractionEnabled = true
+        $0.translatesAutoresizingMaskIntoConstraints = false
+        return $0
+    }(UIImageView(frame: .zero))
+    public private(set) var customView: UIView? {
+        didSet {
+            guard let customView = customView else { return }
+            
+            addSubview(customView)
+        }
+    }
+    public internal(set) var selected: Bool = false {
+        didSet {
+            if case .RoundRect = menuOptions.focusMode {
+                backgroundColor = UIColor.clearColor()
+            } else {
+                backgroundColor = selected ? menuOptions.selectedBackgroundColor : menuOptions.backgroundColor
+            }
+            
+            switch menuItemOptions.displayMode {
+            case .Text(let title):
+                updateLabel(titleLabel, text: title)
+                
+                // adjust label width if needed
+                let labelSize = calculateLabelSize(titleLabel, maxWidth: maxWindowSize)
+                widthConstraint.constant = labelSize.width
+            case .MultilineText(let title, let description):
+                updateLabel(titleLabel, text: title)
+                updateLabel(descriptionLabel, text: description)
+                
+                // adjust label width if needed
+                widthConstraint.constant = calculateLabelSize(titleLabel, maxWidth: maxWindowSize).width
+                descriptionWidthConstraint.constant = calculateLabelSize(descriptionLabel, maxWidth: maxWindowSize).width
+            case .Image(let image, let selectedImage):
+                menuImageView.image = selected ? (selectedImage ?? image) : image
+            case .Custom: break
+            }
+        }
+    }
+    lazy public private(set) var dividerImageView: UIImageView? = { [unowned self] in
+        guard let image = self.menuOptions.dividerImage else { return nil }
+        let imageView = UIImageView(image: image)
+        imageView.translatesAutoresizingMaskIntoConstraints = false
+        return imageView
+    }()
     
-    public private(set) var titleLabel: UILabel!
-    private var options: PagingMenuOptions!
-    private var title: String!
-    private var widthLabelConstraint: NSLayoutConstraint!
-    private var badge: SwiftBadge!
+    private var menuOptions: MenuViewCustomizable!
+    private var menuItemOptions: MenuItemViewCustomizable!
+    private var widthConstraint: NSLayoutConstraint!
+    private var descriptionWidthConstraint: NSLayoutConstraint!
+    private var horizontalMargin: CGFloat {
+        switch menuOptions.displayMode {
+        case .SegmentedControl: return 0.0
+        default: return menuItemOptions.horizontalMargin
+        }
+    }
     
     // MARK: - Lifecycle
     
-    internal init(title: String, options: PagingMenuOptions) {
-        super.init(frame: CGRectZero)
+    internal init(menuOptions: MenuViewCustomizable, menuItemOptions: MenuItemViewCustomizable, addDiveder: Bool) {
+        super.init(frame: .zero)
         
-        self.options = options
-        self.title = title
+        self.menuOptions = menuOptions
+        self.menuItemOptions = menuItemOptions
         
+        switch menuItemOptions.displayMode {
+        case .Text(let title):
+            commonInit({
+                self.setupTitleLabel(title)
+                self.layoutLabel()
+            })
+        case .MultilineText(let title, let description):
+            commonInit({
+                self.setupMultilineLabel(title, description: description)
+                self.layoutMultiLineLabel()
+            })
+        case .Image(let image, _):
+            commonInit({
+                self.setupImageView(image)
+                self.layoutImageView()
+            })
+        case .Custom(let view):
+            commonInit({
+                self.setupCustomView(view)
+                self.layoutCustomView()
+            })
+        }
+    }
+    
+    private func commonInit(setupContentView: () -> Void) {
         setupView()
-        constructLabel()
-        layoutLabel()
+        setupContentView()
+        
+        setupDivider()
+        layoutDivider()
+    }
+    
+    private func initLabel() -> UILabel {
+        let label = UILabel(frame: .zero)
+        label.numberOfLines = 1
+        label.textAlignment = .Center
+        label.userInteractionEnabled = true
+        label.translatesAutoresizingMaskIntoConstraints = false
+        return label
     }
     
     required public init?(coder aDecoder: NSCoder) {
         super.init(coder: aDecoder)
     }
     
-    override init(frame: CGRect) {
-        super.init(frame: frame)
-    }
-    
     // MARK: - Constraints manager
     
-    internal func updateLabelConstraints(size size: CGSize) {
+    internal func updateConstraints(size: CGSize) {
         // set width manually to support ratotaion
-        if case .SegmentedControl = options.menuDisplayMode {
-            let labelSize = calculateLableSize(size)
-            widthLabelConstraint.constant = labelSize.width
+        guard case .SegmentedControl = menuOptions.displayMode else { return }
+        
+        switch menuItemOptions.displayMode {
+        case .Text:
+            let labelSize = calculateLabelSize(titleLabel, maxWidth: size.width)
+            widthConstraint.constant = labelSize.width
+        case .MultilineText:
+            widthConstraint.constant = calculateLabelSize(titleLabel, maxWidth: size.width).width
+            descriptionWidthConstraint.constant = calculateLabelSize(descriptionLabel, maxWidth: size.width).width
+        case .Image, .Custom:
+            widthConstraint.constant = size.width / CGFloat(menuOptions.itemsOptions.count)
         }
-    }
-    
-    // MARK: - Label changer
-    
-    internal func focusLabel(selected: Bool) {
-        if case .RoundRect = options.menuItemMode {
-            backgroundColor = UIColor.clearColor()
-        } else {
-            backgroundColor = selected ? options.selectedBackgroundColor : options.backgroundColor
-        }
-        titleLabel.textColor = selected ? options.selectedTextColor : options.textColor
-        titleLabel.font = selected ? options.selectedFont : options.font
-
-        // adjust label width if needed
-        let labelSize = calculateLableSize()
-        widthLabelConstraint.constant = labelSize.width
     }
     
     // MARK: - Constructor
     
     private func setupView() {
-        if case .RoundRect = options.menuItemMode {
+        if case .RoundRect = menuOptions.focusMode {
             backgroundColor = UIColor.clearColor()
         } else {
-            backgroundColor = options.backgroundColor
+            backgroundColor = menuOptions.backgroundColor
         }
         translatesAutoresizingMaskIntoConstraints = false
     }
     
-    private func constructLabel() {
-        titleLabel = UILabel()
-        titleLabel.text = title
-        titleLabel.textColor = options.textColor
-        titleLabel.font = options.font
-        titleLabel.numberOfLines = 1
-        titleLabel.textAlignment = NSTextAlignment.Center
-        titleLabel.userInteractionEnabled = true
-        titleLabel.translatesAutoresizingMaskIntoConstraints = false
-
-        badge = SwiftBadge()
-        badge.defaultInsets = CGSize(width: 3, height: 3)
-        badge.layer.borderColor = UIColor.whiteColor().CGColor
-        badge.layer.borderWidth = 2
-        badge.font = UIFont.preferredFontForTextStyle(UIFontTextStyleBody).fontWithSize(12)
-        badge.hidden = true
-        
-        addSubview(titleLabel)
-        addSubview(badge)
-        
+    private func setupTitleLabel(text: MenuItemText) {
+        setupLabel(titleLabel, text: text)
     }
     
+    private func setupMultilineLabel(text: MenuItemText, description: MenuItemText) {
+        setupLabel(titleLabel, text: text)
+        setupLabel(descriptionLabel, text: description)
+    }
+    
+    private func setupLabel(label: UILabel, text: MenuItemText) {
+        label.text = text.text
+        updateLabel(label, text: text)
+        addSubview(label)
+    }
+    
+    private func updateLabel(label: UILabel, text: MenuItemText) {
+        label.textColor = selected ? text.selectedColor : text.color
+        label.font = selected ? text.selectedFont : text.font
+    }
+    
+    private func setupImageView(image: UIImage) {
+        menuImageView.image = image
+        addSubview(menuImageView)
+    }
+    
+    private func setupCustomView(view: UIView) {
+        customView = view
+    }
+    
+    private func setupDivider() {
+        guard let dividerImageView = dividerImageView else { return }
+        
+        addSubview(dividerImageView)
+    }
+    
+    private func layoutMultiLineLabel() {
+        let titleLabelSize = calculateLabelSize(titleLabel, maxWidth: maxWindowSize)
+        let descriptionLabelSize = calculateLabelSize(descriptionLabel, maxWidth: maxWindowSize)
+        let verticalMargin = max(menuOptions.height - (titleLabelSize.height + descriptionLabelSize.height), 0) / 2
+        let metrics = ["margin": verticalMargin]
+        let viewsDictionary = ["titleLabel": titleLabel, "descriptionLabel": descriptionLabel]
+        let horizontalConstraints = NSLayoutConstraint.constraintsWithVisualFormat("H:|[titleLabel]|", options: [], metrics: nil, views: viewsDictionary)
+        let verticalConstraints = NSLayoutConstraint.constraintsWithVisualFormat("V:|-margin-[titleLabel][descriptionLabel]-margin-|", options: [], metrics: metrics, views: viewsDictionary)
+
+        let descriptionHorizontalConstraints = NSLayoutConstraint.constraintsWithVisualFormat("H:|[descriptionLabel]|", options: [], metrics: nil, views: viewsDictionary)
+        widthConstraint = NSLayoutConstraint(item: titleLabel, attribute: .Width, relatedBy: .GreaterThanOrEqual, toItem: nil, attribute: .Width, multiplier: 1.0, constant: titleLabelSize.width)
+        descriptionWidthConstraint = NSLayoutConstraint(item: descriptionLabel, attribute: .Width, relatedBy: .GreaterThanOrEqual, toItem: nil, attribute: .Width, multiplier: 1.0, constant: descriptionLabelSize.width)
+        
+        NSLayoutConstraint.activateConstraints(horizontalConstraints + verticalConstraints + descriptionHorizontalConstraints + [widthConstraint, descriptionWidthConstraint])
+    }
+
     private func layoutLabel() {
-        let views: [String: UIView] = [
-            "title": titleLabel,
-            "badge": badge
-        ]
-        let badgeToRight = NSLayoutConstraint.constraintsWithVisualFormat("H:[title]-(0)-[badge]", options: [], metrics: nil, views: views)
-        let badgeToTop = NSLayoutConstraint.constraintsWithVisualFormat("V:[title]-(-30)-[badge]", options: [], metrics: nil, views: views)
-        
-        addConstraints(badgeToRight + badgeToTop)
+        let viewsDictionary = ["label": titleLabel]
+        let labelSize = calculateLabelSize(titleLabel, maxWidth: maxWindowSize)
 
-        let labelSize = calculateLableSize()
+        let horizontalConstraints = NSLayoutConstraint.constraintsWithVisualFormat("H:|[label]|", options: [], metrics: nil, views: viewsDictionary)
+        let verticalConstraints = NSLayoutConstraint.constraintsWithVisualFormat("V:|[label]|", options: [], metrics: nil, views: viewsDictionary)
+        widthConstraint = NSLayoutConstraint(item: titleLabel, attribute: .Width, relatedBy: .Equal, toItem: nil, attribute: .Width, multiplier: 1.0, constant: labelSize.width)
+        
+        NSLayoutConstraint.activateConstraints(horizontalConstraints + verticalConstraints + [widthConstraint])
 
-        
-        let centerX = NSLayoutConstraint(item: self, attribute: NSLayoutAttribute.CenterX, relatedBy: NSLayoutRelation.Equal, toItem: titleLabel, attribute: NSLayoutAttribute.CenterX, multiplier: 1, constant: 0)
-        let centerY = NSLayoutConstraint(item: self, attribute: NSLayoutAttribute.CenterY, relatedBy: NSLayoutRelation.Equal, toItem: titleLabel, attribute: NSLayoutAttribute.CenterY, multiplier: 1, constant: 0)
-        
-        addConstraint(centerX)
-        addConstraint(centerY)
-        
-        widthLabelConstraint = NSLayoutConstraint(item: self, attribute: NSLayoutAttribute.Width, relatedBy: NSLayoutRelation.Equal, toItem: nil, attribute: NSLayoutAttribute.Width, multiplier: 1.0, constant: labelSize.width)
-        widthLabelConstraint.active = true
     }
     
-    // MARK: - Size calculator
-    
-    private func calculateLableSize(size: CGSize = UIScreen.mainScreen().bounds.size) -> CGSize {
-        let labelSize = NSString(string: title).boundingRectWithSize(CGSizeMake(CGFloat.max, CGFloat.max), options: NSStringDrawingOptions.UsesLineFragmentOrigin, attributes: [NSFontAttributeName: titleLabel.font], context: nil).size
-
-        let itemWidth: CGFloat
-        switch options.menuDisplayMode {
-        case let .Standard(widthMode, _, _):
-            itemWidth = labelWidth(labelSize, widthMode: widthMode)
+    private func layoutImageView() {
+        guard let image = menuImageView.image else { return }
+        
+        let width: CGFloat
+        switch menuOptions.displayMode {
         case .SegmentedControl:
-            itemWidth = size.width / CGFloat(options.menuItemCount)
-        case let .Infinite(widthMode):
-            itemWidth = labelWidth(labelSize, widthMode: widthMode)
+            width = UIApplication.sharedApplication().keyWindow!.bounds.size.width / CGFloat(menuOptions.itemsOptions.count)
+        default:
+            width = image.size.width + horizontalMargin * 2
         }
         
-        let itemHeight = floor(labelSize.height)
-        return CGSizeMake(itemWidth + calculateHorizontalMargin() * 2, itemHeight)
+        widthConstraint = NSLayoutConstraint(item: self, attribute: .Width, relatedBy: .Equal, toItem: nil, attribute: .Width, multiplier: 1.0, constant: width)
+        
+        NSLayoutConstraint.activateConstraints([
+            NSLayoutConstraint(item: menuImageView, attribute: .CenterX, relatedBy: .Equal, toItem: self, attribute: .CenterX, multiplier: 1.0, constant: 0.0),
+            NSLayoutConstraint(item: menuImageView, attribute: .CenterY, relatedBy: .Equal, toItem: self, attribute: .CenterY, multiplier: 1.0, constant: 0.0),
+            NSLayoutConstraint(item: menuImageView, attribute: .Width, relatedBy: .Equal, toItem: nil, attribute: .Width, multiplier: 1.0, constant: image.size.width),
+            NSLayoutConstraint(item: menuImageView, attribute: .Height, relatedBy: .Equal, toItem: nil, attribute: .Height, multiplier: 1.0, constant: image.size.height),
+            widthConstraint
+            ])
     }
     
-    private func labelWidth(labelSize: CGSize, widthMode: PagingMenuOptions.MenuItemWidthMode) -> CGFloat {
+    private func layoutCustomView() {
+        guard let customView = customView else { return }
+        
+        widthConstraint = NSLayoutConstraint(item: self, attribute: .Width, relatedBy: .Equal, toItem: nil, attribute: .Width, multiplier: 1.0, constant: customView.frame.width)
+        
+        NSLayoutConstraint.activateConstraints([
+            NSLayoutConstraint(item: customView, attribute: .CenterX, relatedBy: .Equal, toItem: self, attribute: .CenterX, multiplier: 1.0, constant: 0.0),
+            NSLayoutConstraint(item: customView, attribute: .CenterY, relatedBy: .Equal, toItem: self, attribute: .CenterY, multiplier: 1.0, constant: 0.0),
+            NSLayoutConstraint(item: customView, attribute: .Width, relatedBy: .Equal, toItem: nil, attribute: .Width, multiplier: 1.0, constant: customView.frame.width),
+            NSLayoutConstraint(item: customView, attribute: .Height, relatedBy: .Equal, toItem: nil, attribute: .Height, multiplier: 1.0, constant: customView.frame.height),
+            widthConstraint
+            ])
+    }
+    
+    private func layoutDivider() {
+        guard let dividerImageView = dividerImageView else { return }
+        
+        let centerYConstraint = NSLayoutConstraint(item: dividerImageView, attribute: .CenterY, relatedBy: .Equal, toItem: self, attribute: .CenterY, multiplier: 1.0, constant: 1.0)
+        let rightConstraint = NSLayoutConstraint(item: dividerImageView, attribute: .Right, relatedBy: .Equal, toItem: self, attribute: .Right, multiplier: 1.0, constant: 0.0)
+        NSLayoutConstraint.activateConstraints([centerYConstraint, rightConstraint])
+    }
+}
+
+extension MenuItemView: ViewCleanable {
+    func cleanup() {
+        switch menuItemOptions.displayMode {
+        case .Text:
+            titleLabel.removeFromSuperview()
+        case .MultilineText:
+            titleLabel.removeFromSuperview()
+            descriptionLabel.removeFromSuperview()
+        case .Image:
+            menuImageView.removeFromSuperview()
+        case .Custom:
+            customView?.removeFromSuperview()
+        }
+        
+        dividerImageView?.removeFromSuperview()
+    }
+}
+
+extension MenuItemView: LabelSizeCalculatable {
+    func labelWidth(widthMode: MenuItemWidthMode, estimatedSize: CGSize) -> CGFloat {
         switch widthMode {
-        case .Flexible: return ceil(labelSize.width)
-        case let .Fixed(width): return width
+        case .Flexible: return ceil(estimatedSize.width)
+        case .Fixed(let width): return width
         }
     }
     
-    private func calculateHorizontalMargin() -> CGFloat {
-        if case .SegmentedControl = options.menuDisplayMode {
-            return 0.0
+    func estimatedLabelSize(label: UILabel) -> CGSize {
+        guard let text = label.text else { return .zero }
+        return NSString(string: text).boundingRectWithSize(CGSizeMake(CGFloat.max, CGFloat.max), options: .UsesLineFragmentOrigin, attributes: [NSFontAttributeName: label.font], context: nil).size
+    }
+    
+    func calculateLabelSize(label: UILabel, maxWidth: CGFloat) -> CGSize {
+        guard let _ = label.text else { return .zero }
+        
+        let itemWidth: CGFloat
+        switch menuOptions.displayMode {
+        case let .Standard(widthMode, _, _):
+            itemWidth = labelWidth(widthMode, estimatedSize: estimatedLabelSize(label))
+        case .SegmentedControl:
+            itemWidth = maxWidth / CGFloat(menuOptions.itemsOptions.count)
+        case let .Infinite(widthMode, _):
+            itemWidth = labelWidth(widthMode, estimatedSize: estimatedLabelSize(label))
         }
-        return options.menuItemMargin
+        
+        let itemHeight = floor(estimatedLabelSize(label).height)
+        return CGSizeMake(itemWidth + horizontalMargin * 2, itemHeight)
     }
     
-    // MARK: - Public functions
-    
-    public func showBadgeWithText(text: String) {
-        self.badge.text = text
-        self.badge.hidden = false
-    }
-    
-    public func hideBadge() {
-        self.badge.hidden = true
+    private var maxWindowSize: CGFloat {
+        return UIApplication.sharedApplication().keyWindow?.bounds.width ?? UIScreen.mainScreen().bounds.width
     }
 }
